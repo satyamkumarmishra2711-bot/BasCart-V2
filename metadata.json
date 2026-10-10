@@ -1,0 +1,6 @@
+{
+  "name": "BasCart — Simulated Shopping & Guilt-Free Retail Therapy",
+  "description": "Simulated shopping platform where users get ₹50,000 in virtual BasCash to shop guilt-free, satisfy impulse cravings, and track real money saved using Google Sheets architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
