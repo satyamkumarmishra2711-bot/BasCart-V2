@@ -374,6 +374,7 @@ class ApplicationDataStore {
     full_name?: string;
     phone?: string;
     marketing_consent?: boolean;
+    isExplicitSignUp?: boolean; // Controls whether the welcome grant is allocated
   }): Promise<{ user: UserRecord; isNew: boolean }> {
     return this.acquireWalletLock(async () => {
       let existing = this.users.find(
@@ -408,20 +409,22 @@ class ApplicationDataStore {
       this.users.push(newUser);
       await this.persistAppend('Users', newUser);
 
-      // Grant ₹50,000 initial BasCash exactly once
-      const signupTx: BasCashTransactionRecord = {
-        transaction_id: 'tx_signup_' + crypto.randomUUID().slice(0, 8),
-        user_id: userId,
-        transaction_type: 'signup_credit',
-        amount: 50000,
-        balance_before: 0,
-        balance_after: 50000,
-        description: 'Initial ₹50,000 Welcome BasCash Grant for guilt-free simulated shopping',
-        created_at: now,
-        idempotency_key: `signup_${userId}`,
-      };
-      this.transactions.push(signupTx);
-      await this.persistAppend('BasCashTransactions', signupTx);
+      // ONLY allocate ₹50,000 BasCash if explicitly completing sign-up
+      if (params.isExplicitSignUp) {
+        const signupTx: BasCashTransactionRecord = {
+          transaction_id: 'tx_signup_' + crypto.randomUUID().slice(0, 8),
+          user_id: userId,
+          transaction_type: 'signup_credit',
+          amount: 50000,
+          balance_before: 0,
+          balance_after: 50000,
+          description: 'Initial ₹50,000 Welcome BasCash Grant for guilt-free simulated shopping',
+          created_at: now,
+          idempotency_key: `signup_${userId}`,
+        };
+        this.transactions.push(signupTx);
+        await this.persistAppend('BasCashTransactions', signupTx);
+      }
 
       // Record consent
       const termsConsent: ConsentRecord = {
@@ -454,7 +457,9 @@ class ApplicationDataStore {
         activity_type: 'login',
         entity_type: 'user',
         entity_id: userId,
-        metadata_summary: 'New user registered with ₹50,000 welcome grant',
+        metadata_summary: params.isExplicitSignUp
+          ? 'New user registered with ₹50,000 welcome grant'
+          : 'New user initialized without automatic welcome grant',
       });
 
       return { user: newUser, isNew: true };
