@@ -339,6 +339,51 @@ export class ClientFallbackStore {
     };
   }
 
+  public adminLoginWithPassword(email?: string, password?: string) {
+    const adminEmail = (email || 'noreply.bascart@gmail.com').trim().toLowerCase();
+    if (!password) {
+      throw new Error('Please enter the administrator password.');
+    }
+    if (password !== 'World@2026at123') {
+      throw new Error('Incorrect administrator password. Please check your credentials.');
+    }
+
+    const users = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
+    let user = users.find((u: UserRecord) => u.email.toLowerCase() === adminEmail);
+    let isNew = false;
+
+    if (!user) {
+      isNew = true;
+      user = {
+        user_id: 'usr_admin_master',
+        auth_user_id: 'auth_admin_master',
+        email: adminEmail,
+        full_name: 'BasCart Master Admin',
+        phone: '+91 9876543210',
+        account_status: 'active',
+        marketing_consent: true,
+        consent_version: 'v1.0',
+        last_login_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      users.push(user);
+      localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+    }
+
+    const token = 'tok_admin_' + Math.random().toString(36).slice(2, 14);
+    const wallet = this.getWallet(user.user_id);
+
+    return {
+      success: true,
+      token,
+      user,
+      isAdmin: true,
+      isNew,
+      wallet,
+    };
+  }
+
   public getProducts(category_id?: string, search?: string) {
     let prods = [...FALLBACK_PRODUCTS];
     if (category_id && category_id !== 'all') {

@@ -185,6 +185,28 @@ export const api = {
     }
   },
 
+  adminLoginWithPassword: async (email: string, password: string) => {
+    if (isStaticHosting()) {
+      return clientStore.adminLoginWithPassword(email, password);
+    }
+    try {
+      return await request<{
+        success: boolean;
+        token: string;
+        user: UserRecord;
+        isAdmin: boolean;
+        isNew: boolean;
+        wallet: WalletState;
+      }>('/api/auth/admin-login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+    } catch (err: any) {
+      console.warn('Falling back to client admin authentication:', err);
+      return clientStore.adminLoginWithPassword(email, password);
+    }
+  },
+
   // Auth / Session
   createSession: async (payload: { email: string; full_name?: string; role?: string; phone?: string; marketing_consent?: boolean }) => {
     if (isStaticHosting()) {

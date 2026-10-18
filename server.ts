@@ -165,6 +165,52 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   }
 });
 
+// Admin Password Login (Password: World@2026at123)
+app.post('/api/auth/admin-login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const adminEmail = (email || 'noreply.bascart@gmail.com').toLowerCase().trim();
+
+    if (!password) {
+      res.status(400).json({ error: 'Administrator password is required' });
+      return;
+    }
+
+    if (password !== 'World@2026at123') {
+      res.status(401).json({ error: 'Invalid administrator password. Please check your credentials.' });
+      return;
+    }
+
+    const auth_user_id = 'usr_' + Buffer.from(adminEmail).toString('hex').slice(0, 12);
+    const { user, isNew } = await appStore.getOrCreateUser({
+      auth_user_id,
+      email: adminEmail,
+      full_name: 'BasCart Master Admin',
+    });
+
+    const tokenPayload = {
+      user_id: user.user_id,
+      auth_user_id: user.auth_user_id,
+      email: user.email,
+      full_name: user.full_name,
+      role: 'admin',
+    };
+    const token = 'dev_' + Buffer.from(JSON.stringify(tokenPayload)).toString('base64');
+    const wallet = await appStore.getWalletState(user.user_id);
+
+    res.json({
+      success: true,
+      token,
+      user,
+      isAdmin: true,
+      isNew,
+      wallet,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Legacy / Direct Session endpoint (Dev fallback)
 app.post('/api/auth/session', async (req, res) => {
   try {
