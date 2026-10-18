@@ -1,6 +1,7 @@
 import React from 'react';
-import { ShoppingBag, Wallet, User as UserIcon, Shield, ShieldCheck, Sparkles, LogIn, UserPlus } from 'lucide-react';
+import { ShoppingBag, Wallet, User as UserIcon, Shield, ShieldCheck, Sparkles, LogIn, UserPlus, Camera, Upload } from 'lucide-react';
 import type { UserRecord, WalletState } from '../shared/types.ts';
+import { getStoredLogo, setStoredLogo } from '../services/api.ts';
 
 interface HeaderProps {
   user: UserRecord | null;
@@ -23,6 +24,35 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
   isAdmin,
 }) => {
+  const [logo, setLogo] = React.useState<string | null>(() => getStoredLogo());
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  React.useEffect(() => {
+    const handleLogoUpdate = () => {
+      setLogo(getStoredLogo());
+    };
+    window.addEventListener('bascart_logo_updated', handleLogoUpdate);
+    return () => window.removeEventListener('bascart_logo_updated', handleLogoUpdate);
+  }, []);
+
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Please upload an image smaller than 5MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setStoredLogo(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+    // Clear the input value so the same file can be re-selected if desired
+    e.target.value = '';
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200">
       {/* Top Disclaimer Ticker */}
@@ -36,16 +66,48 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Top Bar: Brand, Navigation, Action Hub */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-6">
-        {/* Zone 1: Brand Wordmark */}
-        <button
-          onClick={() => onNavigate('/shop')}
-          className="text-2xl font-bold tracking-tight text-stone-900 hover:text-stone-700 transition-colors whitespace-nowrap shrink-0 flex items-center gap-2 text-left"
-        >
-          <span>BasCart</span>
-          <span className="text-[11px] font-medium tracking-wider uppercase text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
-            Virtual
-          </span>
-        </button>
+        {/* Zone 1: Brand Wordmark / Custom Logo */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => onNavigate('/shop')}
+            className="text-2xl font-bold tracking-tight text-stone-900 hover:text-stone-700 transition-colors whitespace-nowrap shrink-0 flex items-center gap-2.5 text-left"
+          >
+            {logo ? (
+              <img
+                src={logo}
+                alt="BasCart Logo"
+                className="h-9 max-h-9 max-w-[170px] object-contain rounded"
+              />
+            ) : (
+              <span>BasCart</span>
+            )}
+            <span className="text-[11px] font-medium tracking-wider uppercase text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+              Virtual
+            </span>
+          </button>
+
+          {/* Admin Logo Upload Shortcut */}
+          {isAdmin && (
+            <div className="relative">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoFileChange}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Admin: Click to upload custom logo"
+                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-medium"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline text-[10px] text-stone-500">Change Logo</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Zone 2: Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-stone-600">
@@ -119,8 +181,8 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Admin Link / Portal Button */}
-          {isAdmin ? (
+          {/* Admin Link / Portal Button (strictly for authenticated admins only; hidden from customers on front) */}
+          {isAdmin && (
             <button
               onClick={() => onNavigate('/admin')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
@@ -131,19 +193,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
               <span>Admin Portal</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => onNavigate('/admin/login')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
-                activeView === 'admin_login'
-                  ? 'bg-amber-100 text-amber-900 border-amber-300 font-semibold'
-                  : 'bg-white text-amber-800 border-amber-200 hover:bg-amber-50'
-              }`}
-              title="Admin Login URL (/admin/login)"
-            >
-              <Shield className="w-3.5 h-3.5 text-amber-700" />
-              <span className="hidden sm:inline">Admin Login</span>
             </button>
           )}
 

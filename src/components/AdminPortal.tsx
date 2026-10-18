@@ -18,8 +18,11 @@ import {
   Send,
   KeyRound,
   Lock,
+  Image as ImageIcon,
+  Upload,
+  Trash2,
 } from 'lucide-react';
-import { api } from '../services/api.ts';
+import { api, getStoredLogo, setStoredLogo, clearStoredLogo } from '../services/api.ts';
 import type {
   ProductRecord,
   SheetDiagnosticsResponse,
@@ -29,7 +32,35 @@ import type {
 } from '../shared/types.ts';
 
 export const AdminPortal: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'sheets' | 'email' | 'support' | 'audit'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'branding' | 'products' | 'sheets' | 'email' | 'support' | 'audit'>('overview');
+  const [currentLogo, setCurrentLogo] = useState<string | null>(() => getStoredLogo());
+  const [logoMsg, setLogoMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const portalLogoInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handlePortalLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setLogoMsg({ type: 'error', text: 'Logo file size must be less than 5MB.' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setStoredLogo(reader.result);
+        setCurrentLogo(reader.result);
+        setLogoMsg({ type: 'success', text: 'Store logo updated successfully! Visible on header, storefront, and login.' });
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleResetLogo = () => {
+    clearStoredLogo();
+    setCurrentLogo(null);
+    setLogoMsg({ type: 'success', text: 'Store logo reset to default BasCart wordmark.' });
+  };
   const [metrics, setMetrics] = useState<any>(null);
   const [diagnostics, setDiagnostics] = useState<SheetDiagnosticsResponse | null>(null);
   const [products, setProducts] = useState<ProductRecord[]>([]);
@@ -279,6 +310,7 @@ export const AdminPortal: React.FC = () => {
       <div className="flex items-center gap-2 border-b border-stone-200 overflow-x-auto pb-px">
         {[
           { id: 'overview', label: 'Dashboard KPIs', icon: Activity },
+          { id: 'branding', label: 'Store Logo & Brand', icon: ImageIcon },
           { id: 'products', label: 'Product Inventory', icon: ShoppingBag },
           { id: 'sheets', label: 'Google Sheets DB', icon: Database },
           { id: 'email', label: 'Email & OTP Dispatch', icon: Mail },
@@ -370,6 +402,142 @@ export const AdminPortal: React.FC = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: STORE LOGO & BRANDING */}
+      {activeTab === 'branding' && (
+        <div className="space-y-6 max-w-4xl">
+          <div className="p-6 sm:p-8 bg-white border border-stone-200 rounded-3xl shadow-sm space-y-6">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-700 mb-1">
+                <ImageIcon className="w-4 h-4 text-amber-600" />
+                <span>Identity & Brand Asset</span>
+              </div>
+              <h3 className="text-xl font-bold text-stone-900">Storefront Logo</h3>
+              <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+                Upload your custom store logo. It will immediately appear in the header navigation bar, storefront, and authentication screens across desktop and mobile.
+              </p>
+            </div>
+
+            {logoMsg && (
+              <div
+                className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
+                  logoMsg.type === 'success'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-rose-50 border-rose-200 text-rose-700'
+                }`}
+              >
+                <span>{logoMsg.text}</span>
+                <button
+                  type="button"
+                  onClick={() => setLogoMsg(null)}
+                  className="text-[11px] font-bold underline ml-2"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {/* Live Previews */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl border border-stone-200 bg-white">
+                <span className="text-[11px] font-semibold text-stone-500 block mb-3">
+                  Light Theme Preview (Storefront Navigation)
+                </span>
+                <div className="h-20 flex items-center justify-center p-3 bg-stone-50 rounded-xl border border-dashed border-stone-200">
+                  {currentLogo ? (
+                    <img
+                      src={currentLogo}
+                      alt="Store Logo Preview"
+                      className="max-h-12 max-w-[200px] object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 text-xl font-bold text-stone-900">
+                      <span>BasCart</span>
+                      <span className="text-[10px] uppercase tracking-wider text-stone-400 bg-stone-200 px-1.5 py-0.5 rounded">
+                        Virtual
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl border border-stone-800 bg-stone-900 text-white">
+                <span className="text-[11px] font-semibold text-stone-400 block mb-3">
+                  Dark Theme Preview (Footer / Ticker)
+                </span>
+                <div className="h-20 flex items-center justify-center p-3 bg-stone-800/80 rounded-xl border border-dashed border-stone-700">
+                  {currentLogo ? (
+                    <img
+                      src={currentLogo}
+                      alt="Store Logo Preview"
+                      className="max-h-12 max-w-[200px] object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 text-xl font-bold text-white">
+                      <span>BasCart</span>
+                      <span className="text-[10px] uppercase tracking-wider text-stone-400 bg-stone-700 px-1.5 py-0.5 rounded">
+                        Virtual
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* File Upload Zone */}
+            <div className="border-2 border-dashed border-stone-200 hover:border-amber-500 rounded-2xl p-8 text-center bg-stone-50/60 transition-colors">
+              <input
+                ref={portalLogoInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePortalLogoUpload}
+                className="hidden"
+              />
+              <div className="flex flex-col items-center justify-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+                  <Upload className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-stone-900">Choose Image or Drag & Drop</h4>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Supports PNG, JPG, WebP, SVG, and GIF up to 5MB
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => portalLogoInputRef.current?.click()}
+                    className="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-xl transition-colors shadow-sm flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>Upload Image File</span>
+                  </button>
+                  {currentLogo && (
+                    <button
+                      type="button"
+                      onClick={handleResetLogo}
+                      className="px-4 py-2.5 border border-stone-300 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 text-stone-700 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Reset to Default Logo</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Practical Advice */}
+            <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-xs text-amber-950 space-y-1.5">
+              <span className="font-bold block">Tips for Best Visual Appearance:</span>
+              <ul className="list-disc list-inside space-y-1 text-amber-900/90 text-[11px]">
+                <li>Use a transparent PNG or SVG so the logo looks crisp on any background.</li>
+                <li>Horizontal logo formats (~200px wide by 50px high) fit most gracefully in the navigation header.</li>
+                <li>The uploaded logo is saved in browser storage and will be active immediately on both local dev and GitHub Pages.</li>
+              </ul>
             </div>
           </div>
         </div>

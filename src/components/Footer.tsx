@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Heart, Github, Lock, User } from 'lucide-react';
+import { getStoredLogo } from '../services/api.ts';
 
 interface FooterProps {
   onOpenPolicy: (type: 'terms' | 'privacy') => void;
@@ -14,15 +15,33 @@ export const Footer: React.FC<FooterProps> = ({
   onNavigate,
   isAdmin,
 }) => {
+  const [logo, setLogo] = React.useState<string | null>(() => getStoredLogo());
+
+  React.useEffect(() => {
+    const handleLogoUpdate = () => {
+      setLogo(getStoredLogo());
+    };
+    window.addEventListener('bascart_logo_updated', handleLogoUpdate);
+    return () => window.removeEventListener('bascart_logo_updated', handleLogoUpdate);
+  }, []);
+
   return (
     <footer className="bg-stone-900 text-stone-300 border-t border-stone-800 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Brand & Slogan */}
           <div className="md:col-span-2 space-y-3">
-            <span className="text-xl font-bold tracking-tight text-white block">
-              BasCart
-            </span>
+            {logo ? (
+              <img
+                src={logo}
+                alt="BasCart Logo"
+                className="h-8 max-h-8 max-w-[160px] object-contain rounded"
+              />
+            ) : (
+              <span className="text-xl font-bold tracking-tight text-white block">
+                BasCart
+              </span>
+            )}
             <p className="text-stone-400 max-w-sm text-xs leading-relaxed">
               “Your cart is full. Your wallet isn't.” Indulge your shopping impulse, experience the thrill of checking out, and track how much real money you saved.
             </p>
@@ -44,15 +63,6 @@ export const Footer: React.FC<FooterProps> = ({
                 >
                   <User className="w-3.5 h-3.5 text-stone-400" />
                   <span>Customer Login (/login)</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('/admin/login')}
-                  className="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1.5 font-medium"
-                >
-                  <Lock className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Admin Login (/admin/login)</span>
                 </button>
               </li>
               {isAdmin && (
@@ -103,11 +113,22 @@ export const Footer: React.FC<FooterProps> = ({
             © {new Date().getFullYear()} BasCart Inc. All simulated transactions preserved in Google Sheets.
           </div>
           <div className="flex items-center gap-4">
-            <span>Customer: /login</span>
-            <span>·</span>
-            <span>Admin: /admin/login</span>
+            <button
+              onClick={() => onNavigate('/login')}
+              className="hover:text-stone-300 transition-colors"
+            >
+              Customer Portal
+            </button>
             <span>·</span>
             <span>₹0 Real Cost Guaranteed</span>
+            <span>·</span>
+            <button
+              onClick={() => onNavigate('/admin/login')}
+              className="text-stone-600 hover:text-stone-400 transition-colors"
+              title="Restricted Administrative Access"
+            >
+              Owner Only
+            </button>
           </div>
         </div>
       </div>

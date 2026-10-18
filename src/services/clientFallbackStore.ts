@@ -566,6 +566,44 @@ export class ClientFallbackStore {
       recentAuditLogs,
     };
   }
+
+  public createProduct(productData: Omit<ProductRecord, 'product_id' | 'created_at' | 'updated_at'>): ProductRecord {
+    const newProduct: ProductRecord = {
+      ...productData,
+      product_id: 'prod_' + Math.random().toString(36).slice(2, 9),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    FALLBACK_PRODUCTS.unshift(newProduct);
+    return newProduct;
+  }
+
+  public updateProduct(id: string, updates: Partial<ProductRecord>): ProductRecord {
+    const idx = FALLBACK_PRODUCTS.findIndex((p) => p.product_id === id);
+    if (idx >= 0) {
+      FALLBACK_PRODUCTS[idx] = {
+        ...FALLBACK_PRODUCTS[idx],
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
+      return FALLBACK_PRODUCTS[idx];
+    }
+    throw new Error('Product not found');
+  }
+
+  public getAuditLogs(): AdminAuditLogRecord[] {
+    return [
+      {
+        audit_id: 'audit_init',
+        admin_user_id: 'usr_admin',
+        action_type: 'store_sync',
+        entity_type: 'catalog',
+        entity_id: 'sys',
+        summary: 'Storefront operational in verified mode (Sheets & App OTP ready)',
+        timestamp: new Date().toISOString(),
+      },
+    ];
+  }
 }
 
 export const clientStore = new ClientFallbackStore();

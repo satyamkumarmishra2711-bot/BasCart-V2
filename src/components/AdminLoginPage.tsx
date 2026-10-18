@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, ArrowLeft, KeyRound } from 'lucide-react';
-import { api } from '../services/api.ts';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react';
+import { api, getStoredLogo } from '../services/api.ts';
 import type { UserRecord, WalletState } from '../shared/types.ts';
 
 interface AdminLoginPageProps {
@@ -12,6 +12,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
   onLoginSuccess,
   onNavigate,
 }) => {
+  const [logo] = useState<string | null>(() => getStoredLogo());
   const [email, setEmail] = useState('noreply.bascart@gmail.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -47,13 +48,22 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
 
         {/* Navigation & Header */}
         <div>
-          <button
-            onClick={() => onNavigate('/shop')}
-            className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-900 mb-6 transition-colors font-medium"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Storefront</span>
-          </button>
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={() => onNavigate('/shop')}
+              className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-900 transition-colors font-medium"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Storefront</span>
+            </button>
+            {logo && (
+              <img
+                src={logo}
+                alt="Logo"
+                className="h-7 max-h-7 max-w-[120px] object-contain"
+              />
+            )}
+          </div>
 
           <div className="flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider text-amber-800">
             <ShieldCheck className="w-4 h-4 text-amber-600" />
@@ -77,25 +87,8 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
           </div>
         )}
 
-        {/* Password Login Form (No OTP) */}
+        {/* Password Login Form (No OTP, Email Hidden) */}
         <form onSubmit={handleAdminPasswordLogin} className="space-y-5">
-          {/* Email field */}
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-              Administrator Email
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-stone-400" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="noreply.bascart@gmail.com"
-                className="w-full pl-10 pr-3.5 py-2.5 border border-stone-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-600 font-medium bg-stone-50/50"
-                required
-              />
-            </div>
-          </div>
 
           {/* Password field */}
           <div>
@@ -131,21 +124,6 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                 )}
               </button>
             </div>
-          </div>
-
-          {/* Quick Credential Helper Banner */}
-          <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <KeyRound className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-              <span>Master admin key: <strong className="font-mono font-bold">World@2026at123</strong></span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPassword('World@2026at123')}
-              className="text-[10px] font-bold text-amber-800 bg-amber-200/70 hover:bg-amber-200 px-2 py-0.5 rounded transition-colors"
-            >
-              Fill Key
-            </button>
           </div>
 
           {/* Submit button */}
