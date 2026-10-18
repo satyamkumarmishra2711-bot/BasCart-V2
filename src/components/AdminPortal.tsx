@@ -21,6 +21,7 @@ import {
   Image as ImageIcon,
   Upload,
   Trash2,
+  Sparkles,
 } from 'lucide-react';
 import { api, getStoredLogo, setStoredLogo, clearStoredLogo } from '../services/api.ts';
 import type {
@@ -996,6 +997,20 @@ export const AdminPortal: React.FC = () => {
                 <span>{smtpStatus.lastDispatchError}</span>
               </div>
             )}
+
+            {/* GitHub Pages vs Node Server Delivery Explainer */}
+            <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-xs text-amber-950 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-amber-900">
+                <Sparkles className="w-4 h-4 text-amber-700" />
+                <span>How OTP Verification Works on GitHub Pages vs Backend Server</span>
+              </div>
+              <p className="leading-relaxed text-[11px] text-amber-900/90">
+                <strong>Static GitHub Pages Sites:</strong> Web browsers strictly block client-side JavaScript from opening raw TCP connections to port 465 (SMTP) for security. On GitHub Pages, BasCart generates and displays the 6-digit OTP code <strong>directly on the screen</strong> with an Auto-Fill button, so customers and testers can sign up and verify instantly without waiting for emails.
+              </p>
+              <p className="leading-relaxed text-[11px] text-amber-900/90">
+                <strong>Live Email Inbox Delivery:</strong> To deliver emails directly to Gmail inboxes via SMTP, run <code>npm run dev</code> or deploy this repository to a Node.js host (Render, Railway, Cloud Run, or Vercel). The included Node backend will use your Gmail App Password to send real emails to any inbox.
+              </p>
+            </div>
           </div>
 
           {/* Configuration Form & Google App Password Guide */}

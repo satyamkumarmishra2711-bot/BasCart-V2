@@ -757,16 +757,18 @@ export const api = {
   },
 
   sendAdminTestEmail: async (to_email: string) => {
+    const otpRes = clientStore.sendOtp(to_email);
     const fallback = {
       success: true,
-      message: `Test email dispatched to ${to_email}. OTP dispatch configuration verified.`,
+      message: `Test OTP [ ${otpRes.debug_code} ] generated for ${to_email}! On static GitHub Pages, codes are provided instantly on-screen so users can verify without waiting for email delivery.`,
+      debug_code: otpRes.debug_code,
     };
 
     if (isStaticHosting()) {
       return fallback;
     }
     try {
-      return await request<{ success: boolean; message: string }>('/api/admin/send-test-email', {
+      return await request<{ success: boolean; message: string; debug_code?: string }>('/api/admin/send-test-email', {
         method: 'POST',
         body: JSON.stringify({ to_email }),
       });

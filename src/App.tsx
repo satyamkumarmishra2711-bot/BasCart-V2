@@ -123,6 +123,7 @@ export default function App() {
   const [signupName, setSignupName] = useState('');
   const [signupOtp, setSignupOtp] = useState('');
   const [signupStep, setSignupStep] = useState<'form' | 'otp'>('form');
+  const [signupDebugOtp, setSignupDebugOtp] = useState<string | null>(null);
   const [signupLoading, setSignupLoading] = useState(false);
   const [signupError, setSignupError] = useState<string | null>(null);
 
@@ -243,7 +244,8 @@ export default function App() {
     setSignupLoading(true);
     setSignupError(null);
     try {
-      await api.sendOtp(signupEmail.trim());
+      const res = await api.sendOtp(signupEmail.trim());
+      setSignupDebugOtp(res.debug_code);
       setSignupStep('otp');
     } catch (err: any) {
       setSignupError(err.message || 'Failed to dispatch OTP');
@@ -428,8 +430,27 @@ export default function App() {
                     </form>
                   ) : (
                     <form onSubmit={handleInlineVerifyOtp} className="space-y-4">
+                      {signupDebugOtp && (
+                        <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs text-emerald-950 flex items-center justify-between shadow-sm">
+                          <div>
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                              Instant Verification Code
+                            </span>
+                            <span className="font-mono text-xl font-extrabold text-emerald-950 tracking-widest">
+                              {signupDebugOtp}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSignupOtp(signupDebugOtp)}
+                            className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
+                          >
+                            Auto-Fill Code
+                          </button>
+                        </div>
+                      )}
                       <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">Enter 6-Digit OTP sent to {signupEmail}</label>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">Enter 6-Digit OTP</label>
                         <input
                           type="text"
                           maxLength={6}
