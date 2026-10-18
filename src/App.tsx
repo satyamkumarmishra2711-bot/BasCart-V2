@@ -30,8 +30,34 @@ import { AdminLoginPage } from './components/AdminLoginPage.tsx';
 
 export type AppView = 'shop' | 'wallet' | 'orders' | 'impact' | 'admin' | 'customer_login' | 'admin_login';
 
-export function parseViewFromPath(pathname: string): AppView {
-  const p = pathname.toLowerCase();
+export function getSubpathBase(): string {
+  if (typeof window === 'undefined') return '';
+  const p = window.location.pathname.toLowerCase();
+  if (p.startsWith('/bascart-v2')) {
+    return '/BasCart-V2';
+  }
+  return '';
+}
+
+export function parseViewFromPath(pathname: string, hash = ''): AppView {
+  // Check hash route first (e.g. #/login, #/admin/login, #/admin)
+  if (hash) {
+    const h = hash.replace(/^#/, '').toLowerCase();
+    if (h === '/admin/login' || h === 'admin/login') return 'admin_login';
+    if (h === '/admin' || h === 'admin') return 'admin';
+    if (h === '/login' || h === 'login' || h === '/customer/login' || h === '/customer') return 'customer_login';
+    if (h === '/wallet' || h === 'wallet') return 'wallet';
+    if (h === '/orders' || h === 'orders') return 'orders';
+    if (h === '/impact' || h === 'impact') return 'impact';
+  }
+
+  // Normalize pathname by stripping GitHub Pages repo subpath
+  let p = pathname.toLowerCase();
+  if (p.startsWith('/bascart-v2')) {
+    p = p.slice('/bascart-v2'.length);
+  }
+  p = p.replace(/\/$/, '') || '/';
+
   if (p === '/admin/login') return 'admin_login';
   if (p === '/admin') return 'admin';
   if (p === '/login' || p === '/customer/login' || p === '/customer') return 'customer_login';
@@ -77,7 +103,9 @@ export default function App() {
   const [wishlist, setWishlist] = useState<WishlistItemRecord[]>([]);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
 
-  const [activeView, setActiveView] = useState<AppView>(() => parseViewFromPath(window.location.pathname));
+  const [activeView, setActiveView] = useState<AppView>(() =>
+    parseViewFromPath(window.location.pathname, window.location.hash)
+  );
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'featured' | 'price_asc' | 'price_desc'>('featured');
@@ -100,27 +128,34 @@ export default function App() {
 
   const navigate = (pathOrView: string) => {
     let targetView: AppView = 'shop';
-    let targetPath = '/';
+    let targetSubpath = '/';
     if (pathOrView.startsWith('/')) {
-      targetView = parseViewFromPath(pathOrView);
-      targetPath = pathOrView;
+      targetView = parseViewFromPath(pathOrView, '');
+      targetSubpath = pathOrView;
     } else {
       targetView = pathOrView as AppView;
-      targetPath = getPathFromView(targetView);
+      targetSubpath = getPathFromView(targetView);
     }
     setActiveView(targetView);
-    if (window.location.pathname !== targetPath) {
-      window.history.pushState(null, '', targetPath);
+
+    const base = getSubpathBase();
+    const finalPath = `${base}${targetSubpath === '/' ? (base ? '/' : '/') : targetSubpath}`;
+    if (window.location.pathname !== finalPath) {
+      window.history.pushState(null, '', finalPath);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
     const handlePopState = () => {
-      setActiveView(parseViewFromPath(window.location.pathname));
+      setActiveView(parseViewFromPath(window.location.pathname, window.location.hash));
     };
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
   }, []);
 
   const initSession = async () => {

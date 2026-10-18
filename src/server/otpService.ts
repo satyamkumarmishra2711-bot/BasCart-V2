@@ -30,7 +30,7 @@ const CONFIG_FILE_PATH = path.resolve(process.cwd(), 'smtp-config.json');
 const otpRegistry = new Map<string, OtpRecord>();
 
 // Transporter state
-let emailTransporter: nodemailer.Transporter | null = null;
+let emailTransporter: any = null;
 let currentConfig: SmtpConfig = {};
 let lastDispatchError: string | null = null;
 
