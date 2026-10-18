@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>BasCart — Simulated Shopping</title>
+    <script>
+      // Single Page App redirect for GitHub Pages
+      // When a direct URL like /BasCart-V2/login or /BasCart-V2/admin/login is refreshed,
+      // GitHub Pages returns this 404.html. This script preserves the path via hash route.
+      (function() {
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+        var repo = '/BasCart-V2';
+        var lowerPath = path.toLowerCase();
+        var lowerRepo = repo.toLowerCase();
+
+        if (lowerPath.startsWith(lowerRepo)) {
+          var route = path.slice(repo.length);
+          if (route && route !== '/') {
+            window.location.replace(repo + '/#' + route + (search ? search : '') + hash);
+            return;
+          }
+        }
+        window.location.replace(repo + '/');
+      })();
+    </script>
+  </head>
+  <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #fafaf9; color: #44403c;">
+    <div style="text-align: center;">
+      <p style="font-size: 1.125rem; font-weight: 600;">Loading BasCart...</p>
+    </div>
+  </body>
+</html>

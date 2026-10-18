@@ -7,10 +7,10 @@ import { defineConfig } from 'vite';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default defineConfig(() => {
+export default defineConfig(({ command }) => {
   return {
-    // Relative base ensures asset links work on GitHub Pages subpaths (/BasCart-V2/), custom domains, and local dev
-    base: './',
+    // In production build for GitHub Pages, use exact repo subpath '/BasCart-V2/'. In local dev, use '/'
+    base: process.env.VITE_BASE || (command === 'build' ? '/BasCart-V2/' : '/'),
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
