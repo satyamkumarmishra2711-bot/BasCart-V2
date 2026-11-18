@@ -4,9 +4,7 @@
     <meta charset="utf-8">
     <title>BasCart — Simulated Shopping</title>
     <script>
-      // Single Page App redirect for GitHub Pages
-      // When a direct URL like /BasCart-V2/login or /BasCart-V2/admin/login is refreshed,
-      // GitHub Pages returns this 404.html. This script preserves the path via hash route.
+      // Single Page App redirect for GitHub Pages (supports both custom domain '/' and repo subpath '/BasCart-V2')
       (function() {
         var path = window.location.pathname;
         var search = window.location.search;
@@ -21,8 +19,16 @@
             window.location.replace(repo + '/#' + route + (search ? search : '') + hash);
             return;
           }
+          window.location.replace(repo + '/');
+          return;
         }
-        window.location.replace(repo + '/');
+
+        // Custom domain or root deployment (e.g. dreams.bascart.in)
+        if (path && path !== '/') {
+          window.location.replace('/#' + path + (search ? search : '') + hash);
+          return;
+        }
+        window.location.replace('/');
       })();
     </script>
   </head>

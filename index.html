@@ -30,14 +30,14 @@
     </div>
 
     <script>
-      // Fallback detector: If React has not mounted within 2.5 seconds, display the configuration guide
+      // Fallback detector: If React has not mounted within 5 seconds, display the configuration guide
       setTimeout(function() {
         var notice = document.getElementById('unbuilt-notice');
         var root = document.getElementById('root');
         if (notice && root && root.children.length === 1 && root.children[0] === notice) {
           notice.style.display = 'block';
         }
-      }, 2500);
+      }, 5000);
     </script>
 
     <script type="module" src="/src/main.tsx"></script>

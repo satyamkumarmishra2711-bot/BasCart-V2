@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:
 
 permissions:
@@ -35,6 +35,14 @@ jobs:
       - name: Build Static Distribution
         run: npm run build
 
+      # Backup deployment to gh-pages branch (runs first so gh-pages stays updated even if Pages Source is branch-based)
+      - name: Push to gh-pages branch (backup)
+        uses: peaceiris/actions-gh-pages@v3
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
@@ -46,11 +54,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-      # Backup deployment to gh-pages branch in case the repo is configured to Deploy from Branch (gh-pages)
-      - name: Push to gh-pages branch (backup)
-        uses: peaceiris/actions-gh-pages@v3
-        continue-on-error: true
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist

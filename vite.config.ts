@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig(({ command }) => {
   return {
-    // In production build for GitHub Pages, use exact repo subpath '/BasCart-V2/'. In local dev, use '/'
-    base: process.env.VITE_BASE || (command === 'build' ? '/BasCart-V2/' : '/'),
+    // Use relative './' base on build so assets resolve on both custom domains (dreams.bascart.in) and repo subpaths (/BasCart-V2/)
+    base: process.env.VITE_BASE || (command === 'build' ? './' : '/'),
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

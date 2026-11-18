@@ -93,11 +93,17 @@ export function setStoredSheetId(sheetId: string) {
   localStorage.setItem(SHEET_ID_KEY, sheetId);
 }
 
-// Detect if running on static hosting (like GitHub Pages) where there is no Express server
+// Detect if running on static hosting (like GitHub Pages or custom domain) where there is no Express server
 function isStaticHosting(): boolean {
   if (typeof window === 'undefined') return false;
   const host = window.location.hostname.toLowerCase();
-  return host.endsWith('github.io') || host.endsWith('github.dev') || window.location.protocol === 'file:';
+  return (
+    host.endsWith('github.io') ||
+    host.endsWith('github.dev') ||
+    host === 'dreams.bascart.in' ||
+    host.endsWith('.bascart.in') ||
+    window.location.protocol === 'file:'
+  );
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
